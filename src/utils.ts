@@ -1,7 +1,7 @@
 export const currentYear = new Date().getFullYear();
 
 export const createUniqueId = () => {
-  return Date.now();
+  return Date.now() + Math.random();
 };
 
 export function getTotalDaysInMonth(year: number, month: number) {

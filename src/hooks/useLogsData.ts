@@ -11,6 +11,7 @@ interface Key {
 
 export interface LogData {
   id: number;
+  emoji: string;
   name: string;
   description: string;
   keys: Key[];
@@ -20,6 +21,7 @@ export interface LogData {
 export const DEFAULT_LOGS: LogData[] = [
   {
     id: createUniqueId(),
+    emoji: '2b50',
     name: 'Rate my day',
     description: 'On a scale of 1-5, how okay was your day today?',
     keys: [
@@ -47,6 +49,27 @@ export const DEFAULT_LOGS: LogData[] = [
         value: 5,
         label: 'Absolutely glamorous',
         color: 'blue',
+      },
+    ],
+    data: {
+      [currentYear]: initEmptyLog(currentYear),
+    },
+  },
+  {
+    id: createUniqueId() + 2,
+    emoji: '2615',
+    name: 'Caffeine',
+    description: "What's your source of caffeine today?",
+    keys: [
+      {
+        value: 1,
+        label: 'Tea',
+        color: 'brown',
+      },
+      {
+        value: 2,
+        label: 'Coffee',
+        color: 'black',
       },
     ],
     data: {
