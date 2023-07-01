@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { LogData } from '../hooks/useLogsData';
+import { useEffect, useState } from 'react';
+import { LogData } from '../hooks/useLogsState';
 import { currentYear } from '../utils';
 import { Emoji, EmojiStyle } from 'emoji-picker-react';
 
@@ -10,8 +10,12 @@ interface MainSectionProps {
 function Main({ data }: MainSectionProps) {
   const [year, setYear] = useState(currentYear);
 
-  if (!data) {
-    return <div>no data</div>;
+  useEffect(() => {
+    setYear(currentYear);
+  }, [data.id]);
+
+  if (!Object.keys(data.data).length) {
+    return <div className='flex-1 max-h-screen overflow-scroll p-10'>New log</div>;
   }
 
   return (

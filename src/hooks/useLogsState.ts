@@ -1,6 +1,7 @@
 import { useCallback, useReducer } from 'react';
 import { createUniqueId, currentYear, initEmptyLog } from '../utils';
 
+const ACTION_TYPE_SELECT_LOG = 'select';
 const ACTION_TYPE_CREATE_NEW_LOG = 'new log';
 
 interface Key {
@@ -16,6 +17,11 @@ export interface LogData {
   description: string;
   keys: Key[];
   data: Record<string, (number | null)[][]>;
+}
+
+export interface LogsState {
+  activeLogIdx: number;
+  logs: LogData[];
 }
 
 export const DEFAULT_LOGS: LogData[] = [
@@ -78,13 +84,36 @@ export const DEFAULT_LOGS: LogData[] = [
   },
 ];
 
-function reduce(state: LogData[], action: { payload?: string; type: string }) {
+export const DEFAULT_STATE: LogsState = {
+  activeLogIdx: 0,
+  logs: DEFAULT_LOGS,
+};
+
+function reduce(state: LogsState, action: { payload?: string | number; type: string }): LogsState {
   const { type, payload } = action;
 
   switch (type) {
+    case ACTION_TYPE_SELECT_LOG: {
+      if (typeof payload !== 'number' || payload < 0 || payload >= state.logs.length) return state;
+      return {
+        ...state,
+        activeLogIdx: payload,
+      };
+    }
+
     case ACTION_TYPE_CREATE_NEW_LOG: {
-      console.log('create new log');
-      return state;
+      const emptyLog: LogData = {
+        id: createUniqueId(),
+        emoji: '1f4d9',
+        name: 'Log #' + (state.logs.length + 1),
+        keys: [],
+        description: '',
+        data: {},
+      };
+      return {
+        activeLogIdx: state.logs.length,
+        logs: [...state.logs, emptyLog],
+      };
     }
 
     default: {
@@ -93,14 +122,18 @@ function reduce(state: LogData[], action: { payload?: string; type: string }) {
   }
 }
 
-const useLogsData = (data: LogData[]) => {
-  const [state, dispatch] = useReducer(reduce, data.length ? data : DEFAULT_LOGS);
+const useLogsState = (initialState: LogsState) => {
+  const [state, dispatch] = useReducer(reduce, initialState.logs?.length ? initialState : DEFAULT_STATE);
+
+  const selectLog = useCallback((idx: number) => {
+    dispatch({ type: ACTION_TYPE_SELECT_LOG, payload: idx });
+  }, []);
 
   const createNewLog = useCallback(() => {
     dispatch({ type: ACTION_TYPE_CREATE_NEW_LOG });
   }, []);
 
-  return { state, createNewLog };
+  return { state, createNewLog, selectLog };
 };
 
-export default useLogsData;
+export default useLogsState;
