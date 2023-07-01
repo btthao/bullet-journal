@@ -1,3 +1,7 @@
+export const months = ['', 'J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+
+export const days = new Array(32).fill(0).map((_, idx) => idx);
+
 export const currentYear = new Date().getFullYear();
 
 export const createUniqueId = () => {

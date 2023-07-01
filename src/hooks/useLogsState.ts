@@ -3,8 +3,9 @@ import { createUniqueId, currentYear, initEmptyLog } from '../utils';
 
 const ACTION_TYPE_SELECT_LOG = 'select';
 const ACTION_TYPE_CREATE_NEW_LOG = 'new log';
+const ACTION_TYPE_LOG_DAY = 'log day';
 
-interface Key {
+export interface Key {
   value: number;
   label: string;
   color: string;
@@ -34,27 +35,29 @@ export const DEFAULT_LOGS: LogData[] = [
       {
         value: 1,
         label: 'Totally not okay',
-        color: 'pink',
+        color: '#d8c196',
       },
       {
         value: 2,
         label: "I've had better days",
-        color: 'red',
+        color: '#bb9271',
       },
       {
         value: 3,
         label: 'Meh',
-        color: 'green',
+        color: '#50a7e0',
       },
       {
         value: 4,
         label: 'It was a good day',
-        color: 'purple',
+
+        color: '#366e84',
       },
       {
         value: 5,
         label: 'Absolutely glamorous',
-        color: 'blue',
+
+        color: '#386f43',
       },
     ],
     data: {
@@ -70,12 +73,12 @@ export const DEFAULT_LOGS: LogData[] = [
       {
         value: 1,
         label: 'Tea',
-        color: 'brown',
+        color: '#F4B993',
       },
       {
         value: 2,
         label: 'Coffee',
-        color: 'black',
+        color: '#36210E',
       },
     ],
     data: {

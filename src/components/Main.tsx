@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { LogData } from '../hooks/useLogsState';
-import { currentYear } from '../utils';
+import { currentYear, days, months } from '../utils';
 import { Emoji, EmojiStyle } from 'emoji-picker-react';
+import Tile from './Tile';
+import Legends from './Legends';
 
 interface MainSectionProps {
   data: LogData;
@@ -19,15 +21,21 @@ function Main({ data }: MainSectionProps) {
   }
 
   return (
-    <div className='flex-1 max-h-screen overflow-scroll p-10'>
+    <div className='flex-1 max-h-screen overflow-scroll py-6 px-10'>
       <div className='min-w-fit'>
-        <Emoji unified={data.emoji} size={55} emojiStyle={EmojiStyle.NATIVE} />
-        <h1 className='font-extrabold text-4xl my-5'>{data.name}</h1>
-        <div className='border-[0.5px]'>
-          {data.data[year].map((month, monthIdx) => (
-            <div key={monthIdx} className='flex'>
-              {month.map((day, dayIdx) => (
-                <div key={dayIdx} className={`flex-1  border-[0.5px] min-w-[20px] aspect-square  ${day == null ? 'bg-gray-200' : 'bg-neutral-50'}`}></div>
+        <div className='flex gap-4 pl-6'>
+          <Emoji unified={data.emoji} size={55} emojiStyle={EmojiStyle.NATIVE} />
+          <div>
+            <h1 className='font-extrabold text-4xl my-3'>{data.name}</h1>
+            <p className='text-xs'>{data.description}</p>
+          </div>
+        </div>
+        <Legends legends={data.keys} />
+        <div>
+          {months.map((_, month) => (
+            <div key={month} className='flex'>
+              {days.map((day) => (
+                <Tile key={day} data={month > 0 && day > 0 ? data.data[year][month - 1][day - 1] : null} day={day} month={month} />
               ))}
             </div>
           ))}
