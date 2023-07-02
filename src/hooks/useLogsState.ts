@@ -30,7 +30,7 @@ export const DEFAULT_LOGS: LogData[] = [
     id: createUniqueId(),
     emoji: '2b50',
     name: 'Rate my day',
-    description: 'On a scale of 1-5, how okay was your day today?',
+    description: 'How was your day?',
     keys: [
       {
         value: 1,
@@ -73,7 +73,7 @@ export const DEFAULT_LOGS: LogData[] = [
       {
         value: 1,
         label: 'Tea',
-        color: '#F4B993',
+        color: '#fda17c',
       },
       {
         value: 2,
