@@ -12,6 +12,10 @@ const Icon: React.FC<IconProps> = ({ type }) => {
       Svg = Edit;
       break;
 
+    case 'close':
+      Svg = Close;
+      break;
+
     default:
       throw Error(`Invalid icon type "${type}"`);
   }
@@ -35,7 +39,17 @@ const Edit = () => (
         strokeLinecap='round'
         strokeLinejoin='round'
       ></path>
-      <path d='M14.91 4.1499C15.58 6.5399 17.45 8.4099 19.85 9.0899' stroke='#292D32' strokeWidth='1.5' stroke-miterlimit='10' strokeLinecap='round' strokeLinejoin='round'></path>
+      <path d='M14.91 4.1499C15.58 6.5399 17.45 8.4099 19.85 9.0899' stroke='#292D32' strokeWidth='1.5' strokeMiterlimit='10' strokeLinecap='round' strokeLinejoin='round'></path>
+    </g>
+  </svg>
+);
+
+const Close = () => (
+  <svg viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'>
+    <g id='SVGRepo_bgCarrier' strokeWidth='0'></g>
+    <g id='SVGRepo_tracerCarrier' strokeLinecap='round' strokeLinejoin='round'></g>
+    <g id='SVGRepo_iconCarrier'>
+      <path d='M8 8L40 40' stroke='#000000' strokeWidth='4.8' strokeLinecap='round' strokeLinejoin='round'></path> <path d='M8 40L40 8' stroke='#000000' strokeWidth='4.8' strokeLinecap='round' strokeLinejoin='round'></path>
     </g>
   </svg>
 );
