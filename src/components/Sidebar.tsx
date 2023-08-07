@@ -15,10 +15,10 @@ function Sidebar({ data, selectLog, activeLog, createNewLog }: SidebarProps) {
     <div className='w-[16rem] min-w-[16rem] max-h-screen overflow-scroll  bg-neutral-50'>
       <div className='sticky top-0 bg-neutral-50 z-50 px-3 py-5'>
         <Username />
-        <div role='button' className='flex truncate pl-5 pr-3 pb-3 pt-2 rounded-md  border border-gray-200  hover:bg-gray-700 hover:text-white mt-6' onClick={createNewLog}>
-          <Emoji unified={'270d-fe0f'} size={22} emojiStyle={EmojiStyle.NATIVE} />
-          <div className='pl-3 text-sm truncate'>
-            <div className='font-bold  truncate pt-1'>New log</div>
+        <div role='button' className='flex truncate px-3 pb-3 pt-2 rounded-md  border border-gray-200  hover:bg-gray-200 mt-6' onClick={createNewLog}>
+          <Emoji unified={'270d-fe0f'} size={24} emojiStyle={EmojiStyle.NATIVE} />
+          <div className='pl-6 text-sm truncate'>
+            <div className='font-bold  truncate pt-1 text-zinc-500'>New log</div>
           </div>
         </div>
       </div>

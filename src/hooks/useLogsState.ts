@@ -109,9 +109,22 @@ function reduce(state: LogsState, action: { payload?: string | number; type: str
         id: createUniqueId(),
         emoji: '1f4d9',
         name: 'Log #' + (state.logs.length + 1),
-        keys: [],
-        description: '',
-        data: {},
+        keys: [
+          {
+            value: 1,
+            label: '1',
+            color: '#DB9B9A',
+          },
+          {
+            value: 2,
+            label: '2',
+            color: '#829A58',
+          },
+        ],
+        description: 'What do you want to log today?',
+        data: {
+          [currentYear]: initEmptyLog(currentYear),
+        },
       };
       return {
         activeLogIdx: state.logs.length,
