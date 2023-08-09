@@ -1,18 +1,21 @@
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { LogData } from '../hooks/useLogsState';
 import { currentYear, days, months } from '../utils';
 import EmojiPicker, { Categories, Emoji, EmojiStyle } from 'emoji-picker-react';
 import Tile from './Tile';
 import Legends from './Legends';
 import Icon from './Icon';
-import Input from './Input';
+import TextInput from './TextInput';
 import Label from './Label';
+import { produce } from 'immer';
 
 interface MainSectionProps {
   data: LogData;
+  editLog: (logData: LogData) => void;
 }
 
-function Main({ data }: MainSectionProps) {
+function Main(props: MainSectionProps) {
+  const { data } = props;
   const [year, setYear] = useState(currentYear);
   const [openEditModal, setOpenEditModal] = useState(false);
 
@@ -44,7 +47,7 @@ function Main({ data }: MainSectionProps) {
             </div>
           ))}
         </div>
-        {openEditModal && <EditModal data={data} closeModal={() => setOpenEditModal(false)} />}
+        {openEditModal && <EditModal {...props} closeModal={() => setOpenEditModal(false)} />}
       </div>
     </div>
   );
@@ -52,13 +55,31 @@ function Main({ data }: MainSectionProps) {
 
 export default Main;
 
-interface EditModalProps {
-  data: LogData;
+interface EditModalProps extends MainSectionProps {
   closeModal: () => void;
 }
 
-const EditModal = ({ data, closeModal }: EditModalProps) => {
+const EditModal = ({ data, closeModal, editLog }: EditModalProps) => {
   const [values, setValues] = useState(data);
+
+  const handleChange = (name: string, value: string) => {
+    if (Number.isInteger(parseInt(name))) {
+      setValues(
+        produce(values, (draft) => {
+          draft.keys[parseInt(name)].label = value;
+        })
+      );
+    } else {
+      setValues({ ...values, [name]: value });
+    }
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    editLog(values);
+    closeModal();
+  };
+
   return (
     <div className='fixed top-0 left-0 w-full h-full z-[5000]'>
       <div className='absolute top-0 left-0 w-full h-full bg-gray-700 bg-opacity-50 -z-10' onClick={closeModal}></div>
@@ -69,7 +90,7 @@ const EditModal = ({ data, closeModal }: EditModalProps) => {
             <Icon type='close' />
           </button>
         </div>
-        <form className='grid gap-6 '>
+        <form className='grid gap-6 ' onSubmit={handleSubmit}>
           <div className='flex gap-4'>
             <div>
               <Emoji unified={values.emoji} size={60} emojiStyle={EmojiStyle.NATIVE} />
@@ -93,12 +114,12 @@ const EditModal = ({ data, closeModal }: EditModalProps) => {
             </div>
             <div className='flex-1'>
               <Label>Name</Label>
-              <Input type='text' value={values.name} name='name' placeholder='Name' />
+              <TextInput value={values.name} name='name' placeholder='Name' handleChange={handleChange} />
             </div>
           </div>
           <div>
             <Label>Description</Label>
-            <Input type='text' value={values.description} name='description' placeholder='Description' />
+            <TextInput value={values.description} name='description' placeholder='Description' handleChange={handleChange} />
           </div>
           <div>
             <Label>Keys</Label>
@@ -111,7 +132,7 @@ const EditModal = ({ data, closeModal }: EditModalProps) => {
                       background: key.color,
                     }}
                   ></span>
-                  <Input type='text' value={key.label} name={`keys[${idx}].label`} placeholder='label' className='pl-10' />
+                  <TextInput value={key.label} name={`${idx}`} placeholder='label' className='pl-10' handleChange={handleChange} />
                 </div>
               ))}
             </div>
