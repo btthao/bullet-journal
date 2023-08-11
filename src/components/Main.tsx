@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { LogData } from '../hooks/useLogsState';
-import { currentYear, days, months } from '../utils';
+import { currentYear, days, months, randomColor } from '../utils';
 import EmojiPicker, { Categories, Emoji, EmojiStyle } from 'emoji-picker-react';
 import Tile from './Tile';
 import Legends from './Legends';
@@ -8,6 +8,7 @@ import Icon from './Icon';
 import TextInput from './TextInput';
 import Label from './Label';
 import { produce } from 'immer';
+import { set } from 'lodash';
 
 interface MainSectionProps {
   data: LogData;
@@ -63,15 +64,51 @@ const EditModal = ({ data, closeModal, editLog }: EditModalProps) => {
   const [values, setValues] = useState(data);
 
   const handleChange = (name: string, value: string) => {
-    if (Number.isInteger(parseInt(name))) {
-      setValues(
-        produce(values, (draft) => {
-          draft.keys[parseInt(name)].label = value;
-        })
-      );
-    } else {
-      setValues({ ...values, [name]: value });
+    setValues(
+      produce(values, (draft) => {
+        set(draft, name, value);
+      })
+    );
+  };
+
+  const getNewRandomColor = () => {
+    const colors = new Set(values.keys.map((key) => key.color));
+
+    let newColor = randomColor();
+
+    while (colors.has(newColor)) {
+      newColor = randomColor();
     }
+
+    return newColor;
+  };
+
+  const addNewKey = (e: React.MouseEvent<HTMLButtonElement>) => {
+    //   prevent user clicking too fast before set state
+    (e.target as HTMLButtonElement).disabled = true;
+
+    setValues(
+      produce(values, (draft) => {
+        draft.keys.push({
+          value: draft.keys[draft.keys.length - 1].value + 1,
+          label: '',
+          color: getNewRandomColor(),
+        });
+      })
+    );
+
+    setTimeout(() => {
+      (e.target as HTMLButtonElement).disabled = false;
+    }, 400);
+  };
+
+  const deleteKey = (value: number) => {
+    setValues(
+      produce(values, (draft) => {
+        draft.keys = draft.keys.filter((key) => key.value !== value);
+      })
+    );
+  };
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -83,7 +120,7 @@ const EditModal = ({ data, closeModal, editLog }: EditModalProps) => {
   return (
     <div className='fixed top-0 left-0 w-full h-full z-[5000]'>
       <div className='absolute top-0 left-0 w-full h-full bg-gray-700 bg-opacity-50 -z-10' onClick={closeModal}></div>
-      <div className='w-11/12 max-w-[450px] mt-24 mx-auto p-6 rounded-lg bg-white shadow-2xl'>
+      <div className='w-11/12 max-w-[450px] max-h-[90vh] mx-auto mt-[5vh] p-6 rounded-lg bg-white shadow-2xl overflow-scroll'>
         <div className='flex text-xl font-bold mb-4 items-center justify-between'>
           <h6>Edit log</h6>
           <button className='w-8 h-8 p-2 hover:bg-neutral-100  rounded-full' onClick={closeModal}>
@@ -123,16 +160,24 @@ const EditModal = ({ data, closeModal, editLog }: EditModalProps) => {
           </div>
           <div>
             <Label>Keys</Label>
-            <div className='grid grid-cols-2 gap-x-2 gap-y-2'>
+            <button type='button' className='mt-1 mb-3 px-2 py-1 rounded-md text-sm font-medium bg-neutral-200' onClick={addNewKey}>
+              + New key
+            </button>
+            <div className='grid grid-cols-2 gap-2'>
               {values.keys.map((key, idx) => (
-                <div key={idx} className='flex relative rounded-md  min-w-fit items-center text-sm leading-4'>
+                <div key={key.value} className='flex relative rounded-md  min-w-fit items-center text-sm leading-4'>
                   <span
                     className='w-5 h-5  inline-block flex-shrink-0 absolute left-2.5 rounded-md'
                     style={{
                       background: key.color,
                     }}
                   ></span>
-                  <TextInput value={key.label} name={`${idx}`} placeholder='label' className='pl-10' handleChange={handleChange} />
+                  <TextInput value={key.label} name={`keys[${idx}].label`} placeholder='label' className='pl-10 pr-8' handleChange={handleChange} />
+                  {idx >= data.keys.length && (
+                    <button type='button' className='w-5 h-5 p-1 flex-shrink-0 absolute right-2 rounded-full hover:bg-neutral-200' onClick={() => deleteKey(key.value)}>
+                      <Icon type='close' />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
