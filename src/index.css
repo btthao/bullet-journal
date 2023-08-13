@@ -8,3 +8,18 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.EmojiPickerReact.epr-main,
+.color-picker-wrapper {
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  border: 1px solid #e7e7e7 !important;
+}
+
+.small-close-btn {
+  width: 14px;
+  height: 14px;
+  padding: 2px;
+  border-radius: 100%;
+}
