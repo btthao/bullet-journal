@@ -24,7 +24,7 @@ const Input = ({ className, handleChange, ...props }: InputProps) => {
     };
   }, [value]);
 
-  return <input {...props} value={value} onChange={onChange} className={`border bg-neutral-50 border-gray-200 text-sm rounded-md block w-full p-2.5 ${className}`} type='text' />;
+  return <input {...props} value={value} onChange={onChange} className={`border bg-neutral-50 border-gray-200 text-sm rounded-md block w-full p-2.5 ${className} ${props.required && !value ? 'border-red-600' : ''}`} type='text' />;
 };
 
 export default Input;

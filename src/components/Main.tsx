@@ -131,10 +131,6 @@ const EditForm = ({ data, editLog, closeModal }: EditModalProps) => {
     );
   };
 
-  const validate = () => {
-    // form validation
-  };
-
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     editLog(values);
@@ -154,12 +150,12 @@ const EditForm = ({ data, editLog, closeModal }: EditModalProps) => {
         </div>
         <div className='flex-1'>
           <Label>Name</Label>
-          <TextInput value={values.name} name='name' placeholder='Name' handleChange={handleChange} />
+          <TextInput value={values.name} name='name' placeholder='Name' handleChange={handleChange} required />
         </div>
       </div>
       <div>
         <Label>Description</Label>
-        <TextInput value={values.description} name='description' placeholder='Description' handleChange={handleChange} />
+        <TextInput value={values.description} name='description' placeholder='Description' handleChange={handleChange} required />
       </div>
       <div>
         <Label>Keys</Label>
@@ -175,7 +171,7 @@ const EditForm = ({ data, editLog, closeModal }: EditModalProps) => {
                   background: key.color,
                 }}
               ></span>
-              <TextInput value={key.label} name={`keys[${idx}].label`} placeholder='label' className='pl-10 pr-14' handleChange={handleChange} />
+              <TextInput value={key.label} name={`keys[${idx}].label`} placeholder='label' className='pl-10 pr-14' handleChange={handleChange} required />
               <div className='flex-shrink-0 absolute right-1 text-neutral-500'>
                 <button type='button' className='w-6 h-6 p-1 rounded-full hover:bg-neutral-200' onClick={() => setSelectedKeyIdx(idx)}>
                   <Icon type='color-picker' />
