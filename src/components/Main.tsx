@@ -10,6 +10,7 @@ import Label from './Label';
 import { produce } from 'immer';
 import { set } from 'lodash';
 import { HexColorPicker } from 'react-colorful';
+import Select from './Select';
 
 interface MainSectionProps {
   data: LogData;
@@ -39,7 +40,16 @@ function Main(props: MainSectionProps) {
             <Icon type='edit' />
           </button>
         </div>
-        <Legends legends={data.keys} />
+        <div className='flex items-start gap-6 my-5'>
+          <Legends legends={data.keys} />
+          <Select
+            options={Object.keys(data.data).sort((a, b) => parseInt(b) - parseInt(a))}
+            value={year}
+            onChange={(e) => {
+              setYear(parseInt(e.currentTarget.value));
+            }}
+          />
+        </div>
         <div>
           {months.map((_, month) => (
             <div key={month} className='flex'>
@@ -112,7 +122,7 @@ const EditForm = ({ data, editLog, closeModal }: EditModalProps) => {
       produce(values, (draft) => {
         draft.keys.push({
           value: draft.keys[draft.keys.length - 1].value + 1,
-          label: '',
+          label: 'new key',
           color: getNewRandomColor(),
         });
       })

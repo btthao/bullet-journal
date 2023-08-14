@@ -7,7 +7,7 @@ interface LegendsProps {
 
 const Legends: React.FC<LegendsProps> = ({ legends }) => {
   return (
-    <div className='w-full mt-10 mb-6 pl-10'>
+    <div className='w-full mt-3 pl-10'>
       <div className='flex flex-wrap gap-4'>
         {legends.map((key, idx) => (
           <div key={idx} className='flex min-w-fit items-center text-sm leading-4'>
