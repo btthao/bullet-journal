@@ -1,16 +1,13 @@
 import { Emoji, EmojiStyle } from 'emoji-picker-react';
-import { LogData } from '../hooks/useLogsState';
 import LogTab from './LogTab';
 import Username from './Username';
+import { LogsStateAndMethods } from '../hooks/useLogsState';
 
-interface SidebarProps {
-  data: LogData[];
-  activeLog: number;
-  selectLog: (idx: number) => void;
-  createNewLog: () => void;
-}
+type SidebarProps = LogsStateAndMethods;
 
-function Sidebar({ data, selectLog, activeLog, createNewLog }: SidebarProps) {
+function Sidebar({ state, selectLog, createNewLog }: SidebarProps) {
+  const { activeLogIdx, logs } = state;
+
   return (
     <div className='w-[16rem] min-w-[16rem] max-h-screen overflow-scroll  bg-neutral-50'>
       <div className='sticky top-0 bg-neutral-50 z-50 px-3 py-5'>
@@ -23,8 +20,8 @@ function Sidebar({ data, selectLog, activeLog, createNewLog }: SidebarProps) {
         </div>
       </div>
       <div className='grid gap-1 px-3 pb-5'>
-        {data.map((log, idx) => (
-          <LogTab key={log.id} {...log} idx={idx} onClick={() => selectLog(idx)} active={activeLog == idx} />
+        {logs.map((log, idx) => (
+          <LogTab key={log.id} {...log} idx={idx} onClick={() => selectLog(idx)} active={activeLogIdx == idx} />
         ))}
       </div>
     </div>

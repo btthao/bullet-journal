@@ -7,17 +7,17 @@ import useLogsState, { LogsState } from './hooks/useLogsState';
 
 function App() {
   const [localStorage, setLocalStorage] = useLocalStorage<LogsState>('logs', {} as LogsState);
-  const { state, createNewLog, selectLog, editLog } = useLogsState(localStorage);
+  const logsStateAndMethods = useLogsState(localStorage);
 
   useEffect(() => {
-    setLocalStorage(state);
-  }, [setLocalStorage, state]);
+    setLocalStorage(logsStateAndMethods.state);
+  }, [setLocalStorage, logsStateAndMethods.state]);
 
   return (
     <ErrorBoundary fallback={<div>Something went wrong</div>}>
       <div className='flex h-screen'>
-        <Main data={state.logs[state.activeLogIdx]} editLog={editLog} />
-        <Sidebar data={state.logs} selectLog={selectLog} activeLog={state.activeLogIdx} createNewLog={createNewLog} />
+        <Main {...logsStateAndMethods} />
+        <Sidebar {...logsStateAndMethods} />
       </div>
     </ErrorBoundary>
   );

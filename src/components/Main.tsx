@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { LogData } from '../hooks/useLogsState';
+import { LogData, LogsStateAndMethods } from '../hooks/useLogsState';
 import { currentYear, days, months, randomColor } from '../utils';
 import EmojiPicker, { Categories, Emoji, EmojiStyle } from 'emoji-picker-react';
 import Tile from './Tile';
@@ -12,13 +12,11 @@ import { set } from 'lodash';
 import { HexColorPicker } from 'react-colorful';
 import Select from './Select';
 
-interface MainSectionProps {
-  data: LogData;
-  editLog: (logData: LogData) => void;
-}
+type MainSectionProps = LogsStateAndMethods;
 
 function Main(props: MainSectionProps) {
-  const { data } = props;
+  const { state } = props;
+  const data = state.logs[state.activeLogIdx];
   const [year, setYear] = useState(currentYear);
   const [openEditModal, setOpenEditModal] = useState(false);
 
@@ -59,7 +57,7 @@ function Main(props: MainSectionProps) {
             </div>
           ))}
         </div>
-        {openEditModal && <EditModal {...props} closeModal={() => setOpenEditModal(false)} />}
+        {openEditModal && <EditModal {...props} data={data} closeModal={() => setOpenEditModal(false)} />}
       </div>
     </div>
   );
@@ -68,6 +66,7 @@ function Main(props: MainSectionProps) {
 export default Main;
 
 interface EditModalProps extends MainSectionProps {
+  data: LogData;
   closeModal: () => void;
 }
 

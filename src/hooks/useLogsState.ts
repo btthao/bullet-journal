@@ -153,7 +153,18 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
 }
 
 const useLogsState = (initialState: LogsState) => {
-  const [state, dispatch] = useReducer(reduce, initialState.logs?.length ? initialState : DEFAULT_STATE);
+  const [state, dispatch] = useReducer(reduce, null, () => {
+    if (!initialState.logs?.length) return DEFAULT_STATE;
+
+    const logs = initialState.logs;
+    for (const log of logs) {
+      if (!(currentYear in log.data)) {
+        log.data[currentYear] = initEmptyLog(currentYear);
+      }
+    }
+
+    return { ...initialState, logs };
+  });
 
   const selectLog = useCallback((selectedLogIdx: number) => {
     dispatch({ type: ACTION_TYPE_SELECT_LOG, payload: { selectedLogIdx } });
@@ -169,5 +180,7 @@ const useLogsState = (initialState: LogsState) => {
 
   return { state, createNewLog, selectLog, editLog };
 };
+
+export type LogsStateAndMethods = ReturnType<typeof useLogsState>;
 
 export default useLogsState;
