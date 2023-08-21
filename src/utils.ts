@@ -1,4 +1,12 @@
+export type Date = {
+  day: number;
+  month: number;
+  year: number;
+};
+
 export const months = ['', 'J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+
+export const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export const days = new Array(32).fill(0).map((_, idx) => idx);
 
@@ -8,6 +16,11 @@ export const createUniqueId = () => {
   return Date.now() + Math.random();
 };
 
+export const getDayOfWeek = ({ day, month, year }: Date) => {
+  const dayIdx = new Date(year, month - 1, day).getDay();
+  return daysOfWeek[dayIdx];
+};
+
 export function getTotalDaysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate();
 }
@@ -15,11 +28,11 @@ export function getTotalDaysInMonth(year: number, month: number) {
 export function initEmptyLog(year: number) {
   const data = [];
 
-  for (let month = 1; month <= 12; month++) {
-    const totalDays = getTotalDaysInMonth(year, month);
+  for (let month = 0; month <= 12; month++) {
+    const totalDays = month ? getTotalDaysInMonth(year, month) : -1;
     const days = [];
-    for (let i = 0; i < 31; i++) {
-      days.push(i < totalDays ? 0 : null);
+    for (let i = 0; i < 32; i++) {
+      days.push(i > 0 && i <= totalDays ? 0 : null);
     }
     data.push(days);
   }

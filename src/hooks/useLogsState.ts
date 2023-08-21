@@ -1,10 +1,11 @@
 import { useCallback, useReducer } from 'react';
-import { createUniqueId, currentYear, initEmptyLog } from '../utils';
+import { createUniqueId, currentYear, initEmptyLog, Date } from '../utils';
 import { produce } from 'immer';
 
 const ACTION_TYPE_SELECT_LOG = 'select';
 const ACTION_TYPE_CREATE_NEW_LOG = 'new log';
 const ACTION_TYPE_EDIT_LOG = 'edit log';
+const ACTION_TYPE_LOG_DAY = 'log day';
 
 export interface Key {
   value: number;
@@ -97,6 +98,8 @@ export const DEFAULT_STATE: LogsState = {
 type Payload = {
   selectedLogIdx?: number;
   logData?: LogData;
+  date?: Date;
+  keyValue?: number;
 };
 
 function reduce(state: LogsState, action: { payload?: Payload; type: string }): LogsState {
@@ -139,11 +142,29 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
       };
     }
     case ACTION_TYPE_EDIT_LOG: {
+      //   remove deleted keys
       return produce(state, (draft) => {
         if (payload?.logData) {
           draft.logs[draft.activeLogIdx] = payload.logData;
         }
       });
+    }
+
+    case ACTION_TYPE_LOG_DAY: {
+      if (!payload?.date || !payload?.keyValue) return state;
+
+      const { day, month, year } = payload.date;
+
+      if (!month || !day) return state;
+
+      const logs = state.logs;
+      const yearData = logs[state.activeLogIdx].data[year];
+
+      if (typeof yearData?.[month]?.[day] !== 'number') return state;
+
+      yearData[month][day] = payload.keyValue;
+
+      return { ...state, logs };
     }
 
     default: {
@@ -178,7 +199,11 @@ const useLogsState = (initialState: LogsState) => {
     dispatch({ type: ACTION_TYPE_EDIT_LOG, payload: { logData } });
   }, []);
 
-  return { state, createNewLog, selectLog, editLog };
+  const logDay = useCallback((date: Payload['date'], keyValue: Payload['keyValue']) => {
+    dispatch({ type: ACTION_TYPE_LOG_DAY, payload: { date, keyValue } });
+  }, []);
+
+  return { state, createNewLog, selectLog, editLog, logDay };
 };
 
 export type LogsStateAndMethods = ReturnType<typeof useLogsState>;

@@ -1,6 +1,6 @@
-import { FormEvent, useEffect, useState } from 'react';
-import { LogData, LogsStateAndMethods } from '../hooks/useLogsState';
-import { currentYear, days, months, randomColor } from '../utils';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { LogsStateAndMethods } from '../hooks/useLogsState';
+import { currentYear, getDayOfWeek, randomColor, Date } from '../utils';
 import EmojiPicker, { Categories, Emoji, EmojiStyle } from 'emoji-picker-react';
 import Tile from './Tile';
 import Legends from './Legends';
@@ -11,6 +11,7 @@ import { produce } from 'immer';
 import { set } from 'lodash';
 import { HexColorPicker } from 'react-colorful';
 import Select from './Select';
+import Modal from './Modal';
 
 type MainSectionProps = LogsStateAndMethods;
 
@@ -19,11 +20,21 @@ function Main(props: MainSectionProps) {
   const data = state.logs[state.activeLogIdx];
   const [year, setYear] = useState(currentYear);
   const [openEditModal, setOpenEditModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   useEffect(() => {
+    //   if year not in data
     setYear(currentYear);
     setOpenEditModal(false);
   }, [data.id]);
+
+  const closeEditModal = useCallback(() => {
+    setOpenEditModal(false);
+  }, []);
+
+  const closeLogDayModal = useCallback(() => {
+    setSelectedDate(null);
+  }, []);
 
   return (
     <div className='flex-1 max-h-screen overflow-scroll py-6 px-10'>
@@ -49,15 +60,32 @@ function Main(props: MainSectionProps) {
           />
         </div>
         <div>
-          {months.map((_, month) => (
+          {data.data[year].map((monthData, month) => (
             <div key={month} className='flex'>
-              {days.map((day) => (
-                <Tile key={day} data={month > 0 && day > 0 ? data.data[year][month - 1][day - 1] : null} day={day} month={month} />
+              {monthData.map((dayData, day) => (
+                <Tile
+                  key={day}
+                  disabled={dayData == null}
+                  color={data.keys.find((key) => key.value == dayData)?.color}
+                  date={{ day, month, year }}
+                  onClick={() => {
+                    setSelectedDate({ day, month, year });
+                  }}
+                />
               ))}
             </div>
           ))}
         </div>
-        {openEditModal && <EditModal {...props} data={data} closeModal={() => setOpenEditModal(false)} />}
+        {openEditModal && (
+          <Modal title='Edit log' handleClose={closeEditModal}>
+            <EditForm {...props} handleClose={closeEditModal} />
+          </Modal>
+        )}
+        {selectedDate && (
+          <Modal title={`${getDayOfWeek(selectedDate)} ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}`} handleClose={closeLogDayModal}>
+            <LogDayForm {...props} date={selectedDate} />
+          </Modal>
+        )}
       </div>
     </div>
   );
@@ -65,30 +93,12 @@ function Main(props: MainSectionProps) {
 
 export default Main;
 
-interface EditModalProps extends MainSectionProps {
-  data: LogData;
-  closeModal: () => void;
+interface EditFormProps extends MainSectionProps {
+  handleClose: () => void;
 }
 
-const EditModal = (props: EditModalProps) => {
-  const { closeModal } = props;
-  return (
-    <div className='fixed top-0 left-0 w-full h-full z-[5000]'>
-      <div className='absolute top-0 left-0 w-full h-full bg-gray-700 bg-opacity-50 -z-10' onClick={closeModal}></div>
-      <div className='w-11/12 max-w-[450px] max-h-[90vh] mx-auto mt-[5vh] p-6 rounded-lg bg-white shadow-lg overflow-scroll'>
-        <div className='flex text-xl font-bold mb-4 -mr-2 items-center justify-between'>
-          <h6>Edit log</h6>
-          <button className='w-8 h-8 p-2 hover:bg-neutral-100  rounded-full' onClick={closeModal}>
-            <Icon type='close' />
-          </button>
-        </div>
-        <EditForm {...props} />
-      </div>
-    </div>
-  );
-};
-
-const EditForm = ({ data, editLog, closeModal }: EditModalProps) => {
+const EditForm = ({ state, editLog, handleClose }: EditFormProps) => {
+  const data = state.logs[state.activeLogIdx];
   const [values, setValues] = useState(data);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedKeyIdx, setSelectedKeyIdx] = useState<number | null>(null);
@@ -143,7 +153,7 @@ const EditForm = ({ data, editLog, closeModal }: EditModalProps) => {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     editLog(values);
-    closeModal();
+    handleClose();
   };
 
   return (
@@ -241,5 +251,35 @@ const EditForm = ({ data, editLog, closeModal }: EditModalProps) => {
         </button>
       </div>
     </form>
+  );
+};
+
+interface LogDayFormProps extends MainSectionProps {
+  date: Date;
+}
+
+const LogDayForm = ({ state, logDay, date }: LogDayFormProps) => {
+  const data = state.logs[state.activeLogIdx];
+  const { day, month, year } = date;
+  const keys = data.keys;
+  const yearData = data.data[year];
+
+  return (
+    <div className='grid mt-6'>
+      {keys.map((key) => (
+        <div key={key.value} className='flex w-full'>
+          <input type='radio' name='key' id={`${key.value}`} value={key.value} className='peer hidden' onChange={() => logDay(date, key.value)} checked={yearData[month][day] == key.value} />
+          <Label htmlFor={`${key.value}`} className='flex items-center cursor-pointer select-none rounded-md px-3 py-4 peer-checked:bg-gray-200 flex-1 text-base text-black font-normal'>
+            <span
+              className='w-6 h-6 mr-3 inline-block flex-shrink-0 rounded-md'
+              style={{
+                background: key.color,
+              }}
+            ></span>
+            {key.label}
+          </Label>
+        </div>
+      ))}
+    </div>
   );
 };
