@@ -4,6 +4,7 @@ import Main from './components/Main';
 import Sidebar from './components/Sidebar';
 import useLocalStorage from './hooks/useLocalStorage';
 import useLogsState, { LogsState } from './hooks/useLogsState';
+import Error from './components/Error';
 
 function App() {
   const [localStorage, setLocalStorage] = useLocalStorage<LogsState>('logs', {} as LogsState);
@@ -14,7 +15,7 @@ function App() {
   }, [setLocalStorage, logsStateAndMethods.state]);
 
   return (
-    <ErrorBoundary fallback={<div>Something went wrong</div>}>
+    <ErrorBoundary fallback={<Error />}>
       <div className='flex h-screen'>
         <Main {...logsStateAndMethods} />
         <Sidebar {...logsStateAndMethods} />
