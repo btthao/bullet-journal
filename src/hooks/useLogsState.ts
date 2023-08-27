@@ -4,6 +4,7 @@ import { produce } from 'immer';
 
 const ACTION_TYPE_SELECT_LOG = 'select';
 const ACTION_TYPE_CREATE_NEW_LOG = 'new log';
+const ACTION_TYPE_DELETE_LOG = 'delete log';
 const ACTION_TYPE_EDIT_LOG = 'edit log';
 const ACTION_TYPE_LOG_DAY = 'log day';
 
@@ -96,7 +97,7 @@ export const DEFAULT_STATE: LogsState = {
 };
 
 type Payload = {
-  selectedLogIdx?: number;
+  logIdx?: number;
   logData?: LogData;
   date?: Date;
   keyValue?: number;
@@ -107,10 +108,10 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
 
   switch (type) {
     case ACTION_TYPE_SELECT_LOG: {
-      if (typeof payload?.selectedLogIdx !== 'number') return state;
+      if (typeof payload?.logIdx !== 'number') return state;
       return {
         ...state,
-        activeLogIdx: payload.selectedLogIdx,
+        activeLogIdx: payload.logIdx,
       };
     }
 
@@ -141,8 +142,15 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
         logs: [...state.logs, emptyLog],
       };
     }
+
+    case ACTION_TYPE_DELETE_LOG: {
+      return {
+        activeLogIdx: 0,
+        logs: state.logs.filter((_, idx) => idx !== state.activeLogIdx),
+      };
+    }
+
     case ACTION_TYPE_EDIT_LOG: {
-      //   remove deleted keys
       return produce(state, (draft) => {
         if (payload?.logData) {
           draft.logs[draft.activeLogIdx] = payload.logData;
@@ -153,18 +161,14 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
     case ACTION_TYPE_LOG_DAY: {
       if (!payload?.date || !payload?.keyValue) return state;
 
+      const { activeLogIdx, logs } = state;
       const { day, month, year } = payload.date;
 
-      if (!month || !day) return state;
+      if (!logs[activeLogIdx].data[year] || !month || !day) return state;
 
-      const logs = state.logs;
-      const yearData = logs[state.activeLogIdx].data[year];
-
-      if (typeof yearData?.[month]?.[day] !== 'number') return state;
-
-      yearData[month][day] = payload.keyValue;
-
-      return { ...state, logs };
+      return produce(state, (draft) => {
+        draft.logs[activeLogIdx].data[year][month][day] = payload.keyValue as number;
+      });
     }
 
     default: {
@@ -187,12 +191,16 @@ const useLogsState = (initialState: LogsState) => {
     return { ...initialState, logs };
   });
 
-  const selectLog = useCallback((selectedLogIdx: number) => {
-    dispatch({ type: ACTION_TYPE_SELECT_LOG, payload: { selectedLogIdx } });
+  const selectLog = useCallback((logIdx: number) => {
+    dispatch({ type: ACTION_TYPE_SELECT_LOG, payload: { logIdx } });
   }, []);
 
   const createNewLog = useCallback(() => {
     dispatch({ type: ACTION_TYPE_CREATE_NEW_LOG });
+  }, []);
+
+  const deleteLog = useCallback(() => {
+    dispatch({ type: ACTION_TYPE_DELETE_LOG });
   }, []);
 
   const editLog = useCallback((logData: LogData) => {
@@ -203,7 +211,7 @@ const useLogsState = (initialState: LogsState) => {
     dispatch({ type: ACTION_TYPE_LOG_DAY, payload: { date, keyValue } });
   }, []);
 
-  return { state, createNewLog, selectLog, editLog, logDay };
+  return { state, createNewLog, selectLog, editLog, logDay, deleteLog };
 };
 
 export type LogsStateAndMethods = ReturnType<typeof useLogsState>;

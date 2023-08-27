@@ -16,7 +16,7 @@ import Modal from './Modal';
 type MainSectionProps = LogsStateAndMethods;
 
 function Main(props: MainSectionProps) {
-  const { state } = props;
+  const { state, deleteLog } = props;
   const data = state.logs[state.activeLogIdx];
   const [year, setYear] = useState(currentYear);
   const [openEditModal, setOpenEditModal] = useState(false);
@@ -26,7 +26,7 @@ function Main(props: MainSectionProps) {
     //   if year not in data
     setYear(currentYear);
     setOpenEditModal(false);
-  }, [data.id]);
+  }, [data?.id]);
 
   const closeEditModal = useCallback(() => {
     setOpenEditModal(false);
@@ -35,6 +35,14 @@ function Main(props: MainSectionProps) {
   const closeLogDayModal = useCallback(() => {
     setSelectedDate(null);
   }, []);
+
+  if (!data) {
+    return (
+      <div className='flex-1 max-h-screen overflow-scroll py-6 px-10'>
+        <div className='min-w-fit'>empty</div>
+      </div>
+    );
+  }
 
   return (
     <div className='flex-1 max-h-screen overflow-scroll py-6 px-10'>
@@ -45,8 +53,11 @@ function Main(props: MainSectionProps) {
             <h1 className='font-extrabold text-4xl my-3'>{data.name}</h1>
             <p className='text-xs'>{data.description}</p>
           </div>
-          <button className='w-12 bg-neutral-100  hover:bg-neutral-200 p-3 rounded-full' onClick={() => setOpenEditModal(true)}>
+          <button className='w-10 bg-neutral-100  hover:bg-neutral-200 p-3 rounded-full' onClick={() => setOpenEditModal(true)}>
             <Icon type='edit' />
+          </button>
+          <button className='w-10 bg-red-100 text-red-700  hover:bg-red-200 p-3 rounded-full' onClick={deleteLog}>
+            <Icon type='bin' />
           </button>
         </div>
         <div className='flex items-start gap-6 my-5'>
