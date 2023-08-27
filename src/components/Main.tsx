@@ -16,7 +16,7 @@ import Modal from './Modal';
 type MainSectionProps = LogsStateAndMethods;
 
 function Main(props: MainSectionProps) {
-  const { state, deleteLog } = props;
+  const { state, deleteLog, createNewLog } = props;
   const data = state.logs[state.activeLogIdx];
   const [year, setYear] = useState(currentYear);
   const [openEditModal, setOpenEditModal] = useState(false);
@@ -39,7 +39,12 @@ function Main(props: MainSectionProps) {
   if (!data) {
     return (
       <div className='flex-1 max-h-screen overflow-scroll py-6 px-10'>
-        <div className='min-w-fit'>empty</div>
+        <div className='min-w-fit text-center'>
+          <h1 className='text-3xl font-bold mt-10'>Wow, such emptiness!</h1>
+          <button className='bg-green-500 py-2 px-4 mt-4 rounded-md font-semibold text-white' onClick={createNewLog}>
+            Create new log
+          </button>
+        </div>
       </div>
     );
   }
