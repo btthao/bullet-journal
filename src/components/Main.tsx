@@ -1,6 +1,6 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { LogsStateAndMethods } from '../hooks/useLogsState';
-import { currentYear, getDayOfWeek, randomColor, Date } from '../utils';
+import { getDayOfWeek, randomColor, Date } from '../utils';
 import EmojiPicker, { Categories, Emoji, EmojiStyle } from 'emoji-picker-react';
 import Tile from './Tile';
 import Legends from './Legends';
@@ -16,25 +16,9 @@ import Modal from './Modal';
 type MainSectionProps = LogsStateAndMethods;
 
 function Main(props: MainSectionProps) {
-  const { state, deleteLog, createNewLog } = props;
+  const { state, deleteLog, createNewLog, dismissModal, selectDate, selectYear, displayEditModal } = props;
+  const { selectedDate, showEditModal, showLogDayModal, selectedYear } = state;
   const data = state.logs[state.activeLogIdx];
-  const [year, setYear] = useState(currentYear);
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-
-  useEffect(() => {
-    //   if year not in data
-    setYear(currentYear);
-    setOpenEditModal(false);
-  }, [data?.id]);
-
-  const closeEditModal = useCallback(() => {
-    setOpenEditModal(false);
-  }, []);
-
-  const closeLogDayModal = useCallback(() => {
-    setSelectedDate(null);
-  }, []);
 
   if (!data) {
     return (
@@ -58,7 +42,7 @@ function Main(props: MainSectionProps) {
             <h1 className='font-extrabold text-4xl my-3'>{data.name}</h1>
             <p className='text-xs'>{data.description}</p>
           </div>
-          <button className='w-10 bg-neutral-100  hover:bg-neutral-200 p-3 rounded-full' onClick={() => setOpenEditModal(true)}>
+          <button className='w-10 bg-neutral-100  hover:bg-neutral-200 p-3 rounded-full' onClick={displayEditModal}>
             <Icon type='edit' />
           </button>
           <button className='w-10 bg-red-100 text-red-700  hover:bg-red-200 p-3 rounded-full' onClick={deleteLog}>
@@ -69,37 +53,29 @@ function Main(props: MainSectionProps) {
           <Legends legends={data.keys} />
           <Select
             options={Object.keys(data.data).sort((a, b) => parseInt(b) - parseInt(a))}
-            value={year}
+            value={selectedYear}
             onChange={(e) => {
-              setYear(parseInt(e.currentTarget.value));
+              selectYear(parseInt(e.currentTarget.value));
             }}
           />
         </div>
         <div>
-          {data.data[year].map((monthData, month) => (
+          {data.data[selectedYear].map((monthData, month) => (
             <div key={month} className='flex'>
               {monthData.map((dayData, day) => (
-                <Tile
-                  key={day}
-                  disabled={dayData == null}
-                  color={data.keys.find((key) => key.value == dayData)?.color}
-                  date={{ day, month, year }}
-                  onClick={() => {
-                    setSelectedDate({ day, month, year });
-                  }}
-                />
+                <Tile key={day} disabled={dayData == null} color={data.keys.find((key) => key.value == dayData)?.color} date={{ day, month, year: selectedYear }} onClick={selectDate} />
               ))}
             </div>
           ))}
         </div>
-        {openEditModal && (
-          <Modal title='Edit log' handleClose={closeEditModal}>
-            <EditForm {...props} handleClose={closeEditModal} />
+        {showEditModal && (
+          <Modal title='Edit log' handleClose={dismissModal}>
+            <EditForm {...props} />
           </Modal>
         )}
-        {selectedDate && (
-          <Modal title={`${getDayOfWeek(selectedDate)} ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}`} handleClose={closeLogDayModal}>
-            <LogDayForm {...props} date={selectedDate} />
+        {showLogDayModal && selectedDate && (
+          <Modal title={`${getDayOfWeek(selectedDate)} ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}`} handleClose={dismissModal}>
+            <LogDayForm {...props} />
           </Modal>
         )}
       </div>
@@ -109,11 +85,7 @@ function Main(props: MainSectionProps) {
 
 export default Main;
 
-interface EditFormProps extends MainSectionProps {
-  handleClose: () => void;
-}
-
-const EditForm = ({ state, editLog, handleClose }: EditFormProps) => {
+const EditForm = ({ state, editLog, dismissModal }: MainSectionProps) => {
   const data = state.logs[state.activeLogIdx];
   const [values, setValues] = useState(data);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -169,7 +141,7 @@ const EditForm = ({ state, editLog, handleClose }: EditFormProps) => {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     editLog(values);
-    handleClose();
+    dismissModal();
   };
 
   return (
@@ -270,13 +242,9 @@ const EditForm = ({ state, editLog, handleClose }: EditFormProps) => {
   );
 };
 
-interface LogDayFormProps extends MainSectionProps {
-  date: Date;
-}
-
-const LogDayForm = ({ state, logDay, date }: LogDayFormProps) => {
+const LogDayForm = ({ state, logDay }: MainSectionProps) => {
+  const { day, month, year } = state.selectedDate as Date;
   const data = state.logs[state.activeLogIdx];
-  const { day, month, year } = date;
   const keys = data.keys;
   const yearData = data.data[year];
 
@@ -284,15 +252,15 @@ const LogDayForm = ({ state, logDay, date }: LogDayFormProps) => {
     <div className='grid mt-6'>
       {keys.map((key) => (
         <div key={key.value} className='flex w-full'>
-          <input type='radio' name='key' id={`${key.value}`} value={key.value} className='peer hidden' onChange={() => logDay(date, key.value)} checked={yearData[month][day] == key.value} />
-          <Label htmlFor={`${key.value}`} className='flex items-center cursor-pointer select-none rounded-md px-3 py-4 peer-checked:bg-gray-200 flex-1 text-base text-black font-normal'>
+          <input type='radio' name='key' id={`${key.value}`} value={key.value} className='peer hidden' onChange={() => logDay(key.value)} checked={yearData[month][day] == key.value} />
+          <Label htmlFor={`${key.value}`} className='flex items-center cursor-pointer select-none rounded-md px-3 py-4 peer-checked:bg-gray-200 flex-1'>
             <span
               className='w-6 h-6 mr-3 inline-block flex-shrink-0 rounded-md'
               style={{
                 background: key.color,
               }}
             ></span>
-            {key.label}
+            <span className='text-sm text-black'>{key.label}</span>
           </Label>
         </div>
       ))}

@@ -2,11 +2,15 @@ import { useCallback, useReducer } from 'react';
 import { createUniqueId, currentYear, initEmptyLog, Date } from '../utils';
 import { produce } from 'immer';
 
-const ACTION_TYPE_SELECT_LOG = 'select';
+const ACTION_TYPE_SELECT_LOG = 'select log';
 const ACTION_TYPE_CREATE_NEW_LOG = 'new log';
 const ACTION_TYPE_DELETE_LOG = 'delete log';
 const ACTION_TYPE_EDIT_LOG = 'edit log';
+const ACTION_TYPE_SELECT_YEAR = 'select year';
+const ACTION_TYPE_SELECT_DATE = 'select date';
 const ACTION_TYPE_LOG_DAY = 'log day';
+const ACTION_TYPE_DISPLAY_EDIT_MODAL = 'show edit modal';
+const ACTION_TYPE_DISMISS_MODAL = 'dismiss modal';
 
 export interface Key {
   value: number;
@@ -27,6 +31,10 @@ export interface LogData {
 export interface LogsState {
   activeLogIdx: number;
   logs: LogData[];
+  selectedYear: number;
+  selectedDate: Date | null;
+  showEditModal: boolean;
+  showLogDayModal: boolean;
 }
 
 export const DEFAULT_LOGS: LogData[] = [
@@ -94,12 +102,17 @@ export const DEFAULT_LOGS: LogData[] = [
 export const DEFAULT_STATE: LogsState = {
   activeLogIdx: 0,
   logs: DEFAULT_LOGS,
+  selectedYear: currentYear,
+  selectedDate: null,
+  showEditModal: false,
+  showLogDayModal: false,
 };
 
 type Payload = {
   logIdx?: number;
   logData?: LogData;
-  date?: Date;
+  year?: number;
+  date?: Date | null;
   keyValue?: number;
 };
 
@@ -110,8 +123,9 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
     case ACTION_TYPE_SELECT_LOG: {
       if (typeof payload?.logIdx !== 'number') return state;
       return {
-        ...state,
+        ...DEFAULT_STATE,
         activeLogIdx: payload.logIdx,
+        logs: state.logs,
       };
     }
 
@@ -138,6 +152,7 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
         },
       };
       return {
+        ...DEFAULT_STATE,
         activeLogIdx: state.logs.length,
         logs: [...state.logs, emptyLog],
       };
@@ -145,6 +160,7 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
 
     case ACTION_TYPE_DELETE_LOG: {
       return {
+        ...DEFAULT_STATE,
         activeLogIdx: 0,
         logs: state.logs.filter((_, idx) => idx !== state.activeLogIdx),
       };
@@ -159,16 +175,57 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
     }
 
     case ACTION_TYPE_LOG_DAY: {
-      if (!payload?.date || !payload?.keyValue) return state;
+      if (!payload?.keyValue || !state.selectedDate) return state;
 
-      const { activeLogIdx, logs } = state;
-      const { day, month, year } = payload.date;
+      const {
+        activeLogIdx,
+        logs,
+        selectedDate: { day, month, year },
+      } = state;
 
       if (!logs[activeLogIdx].data[year] || !month || !day) return state;
 
       return produce(state, (draft) => {
         draft.logs[activeLogIdx].data[year][month][day] = payload.keyValue as number;
       });
+    }
+
+    case ACTION_TYPE_SELECT_YEAR: {
+      if (payload?.year == undefined) return state;
+
+      return {
+        ...state,
+        selectedYear: payload.year,
+      };
+    }
+
+    case ACTION_TYPE_SELECT_DATE: {
+      if (!payload?.date) return state;
+
+      return {
+        ...state,
+        selectedDate: payload.date,
+        showEditModal: false,
+        showLogDayModal: true,
+      };
+    }
+
+    case ACTION_TYPE_DISPLAY_EDIT_MODAL: {
+      return {
+        ...state,
+        selectedDate: null,
+        showEditModal: true,
+        showLogDayModal: false,
+      };
+    }
+
+    case ACTION_TYPE_DISMISS_MODAL: {
+      return {
+        ...state,
+        selectedDate: null,
+        showLogDayModal: false,
+        showEditModal: false,
+      };
     }
 
     default: {
@@ -188,7 +245,7 @@ const useLogsState = (initialState: LogsState) => {
       }
     }
 
-    return { ...initialState, logs };
+    return { ...DEFAULT_STATE, logs };
   });
 
   const selectLog = useCallback((logIdx: number) => {
@@ -207,11 +264,27 @@ const useLogsState = (initialState: LogsState) => {
     dispatch({ type: ACTION_TYPE_EDIT_LOG, payload: { logData } });
   }, []);
 
-  const logDay = useCallback((date: Payload['date'], keyValue: Payload['keyValue']) => {
-    dispatch({ type: ACTION_TYPE_LOG_DAY, payload: { date, keyValue } });
+  const logDay = useCallback((keyValue: Payload['keyValue']) => {
+    dispatch({ type: ACTION_TYPE_LOG_DAY, payload: { keyValue } });
   }, []);
 
-  return { state, createNewLog, selectLog, editLog, logDay, deleteLog };
+  const selectDate = useCallback((date: Payload['date']) => {
+    dispatch({ type: ACTION_TYPE_SELECT_DATE, payload: { date } });
+  }, []);
+
+  const selectYear = useCallback((year: number) => {
+    dispatch({ type: ACTION_TYPE_SELECT_YEAR, payload: { year } });
+  }, []);
+
+  const displayEditModal = useCallback(() => {
+    dispatch({ type: ACTION_TYPE_DISPLAY_EDIT_MODAL });
+  }, []);
+
+  const dismissModal = useCallback(() => {
+    dispatch({ type: ACTION_TYPE_DISMISS_MODAL });
+  }, []);
+
+  return { state, createNewLog, selectLog, editLog, logDay, deleteLog, displayEditModal, dismissModal, selectDate, selectYear };
 };
 
 export type LogsStateAndMethods = ReturnType<typeof useLogsState>;
