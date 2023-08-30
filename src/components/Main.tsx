@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { LogsStateAndMethods } from '../hooks/useLogsState';
+import { LogData, LogsStateAndMethods } from '../hooks/useLogsState';
 import { getDayOfWeek, randomColor, Date } from '../utils';
 import EmojiPicker, { Categories, Emoji, EmojiStyle } from 'emoji-picker-react';
 import Tile from './Tile';
@@ -16,7 +16,7 @@ import Modal from './Modal';
 type MainSectionProps = LogsStateAndMethods;
 
 function Main(props: MainSectionProps) {
-  const { state, deleteLog, createNewLog, dismissModal, selectDate, selectYear, displayEditModal } = props;
+  const { state, deleteLog, createNewLog, dismissModal, selectDate, selectYear, displayEditModal, editLog, logDay } = props;
   const { selectedDate, showEditModal, showLogDayModal, selectedYear } = state;
   const data = state.logs[state.activeLogIdx];
 
@@ -62,20 +62,20 @@ function Main(props: MainSectionProps) {
         <div>
           {data.data[selectedYear].map((monthData, month) => (
             <div key={month} className='flex'>
-              {monthData.map((dayData, day) => (
-                <Tile key={day} disabled={dayData == null} color={data.keys.find((key) => key.value == dayData)?.color} date={{ day, month, year: selectedYear }} onClick={selectDate} />
+              {monthData.map((dateData, date) => (
+                <Tile key={date} disabled={dateData == null} color={data.keys.find((key) => key.value == dateData)?.color} date={{ date, month, year: selectedYear }} onClick={selectDate} />
               ))}
             </div>
           ))}
         </div>
         {showEditModal && (
           <Modal title='Edit log' handleClose={dismissModal}>
-            <EditForm {...props} />
+            <EditForm data={data} dismissModal={dismissModal} editLog={editLog} />
           </Modal>
         )}
         {showLogDayModal && selectedDate && (
-          <Modal title={`${getDayOfWeek(selectedDate)} ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}`} handleClose={dismissModal}>
-            <LogDayForm {...props} />
+          <Modal title={`${getDayOfWeek(selectedDate)} ${selectedDate.date}/${selectedDate.month}/${selectedDate.year}`} handleClose={dismissModal}>
+            <LogDayForm data={data} date={selectedDate} logDay={logDay} />
           </Modal>
         )}
       </div>
@@ -85,8 +85,11 @@ function Main(props: MainSectionProps) {
 
 export default Main;
 
-const EditForm = ({ state, editLog, dismissModal }: MainSectionProps) => {
-  const data = state.logs[state.activeLogIdx];
+interface EditFormProps extends Required<Pick<LogsStateAndMethods, 'editLog' | 'dismissModal'>> {
+  data: LogData;
+}
+
+const EditForm = ({ data, editLog, dismissModal }: EditFormProps) => {
   const [values, setValues] = useState(data);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedKeyIdx, setSelectedKeyIdx] = useState<number | null>(null);
@@ -242,9 +245,12 @@ const EditForm = ({ state, editLog, dismissModal }: MainSectionProps) => {
   );
 };
 
-const LogDayForm = ({ state, logDay }: MainSectionProps) => {
-  const { day, month, year } = state.selectedDate as Date;
-  const data = state.logs[state.activeLogIdx];
+interface LogDayFormProps extends Required<Pick<LogsStateAndMethods, 'logDay'>> {
+  date: Date;
+  data: LogData;
+}
+
+const LogDayForm = ({ data, date: { date, month, year }, logDay }: LogDayFormProps) => {
   const keys = data.keys;
   const yearData = data.data[year];
 
@@ -252,7 +258,7 @@ const LogDayForm = ({ state, logDay }: MainSectionProps) => {
     <div className='grid mt-6'>
       {keys.map((key) => (
         <div key={key.value} className='flex w-full'>
-          <input type='radio' name='key' id={`${key.value}`} value={key.value} className='peer hidden' onChange={() => logDay(key.value)} checked={yearData[month][day] == key.value} />
+          <input type='radio' name='key' id={`${key.value}`} value={key.value} className='peer hidden' onChange={() => logDay(key.value)} checked={yearData[month][date] == key.value} />
           <Label htmlFor={`${key.value}`} className='flex items-center cursor-pointer select-none rounded-md px-3 py-4 peer-checked:bg-gray-200 flex-1'>
             <span
               className='w-6 h-6 mr-3 inline-block flex-shrink-0 rounded-md'

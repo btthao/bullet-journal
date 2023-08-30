@@ -1,5 +1,5 @@
 export type Date = {
-  day: number;
+  date: number;
   month: number;
   year: number;
 };
@@ -11,14 +11,20 @@ export const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday
 export const days = new Array(32).fill(0).map((_, idx) => idx);
 
 export const currentYear = new Date().getFullYear();
+export const currentMonth = new Date().getMonth() + 1;
+export const currentDate = new Date().getDate();
 
 export const createUniqueId = () => {
   return Date.now() + Math.random();
 };
 
-export const getDayOfWeek = ({ day, month, year }: Date) => {
-  const dayIdx = new Date(year, month - 1, day).getDay();
+export const getDayOfWeek = ({ date, month, year }: Date) => {
+  const dayIdx = new Date(year, month - 1, date).getDay();
   return daysOfWeek[dayIdx];
+};
+
+export const isItToday = ({ date, month, year }: Date) => {
+  return year == currentYear && month == currentMonth && date == currentDate;
 };
 
 export function getTotalDaysInMonth(year: number, month: number) {

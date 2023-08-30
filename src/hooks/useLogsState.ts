@@ -180,13 +180,13 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
       const {
         activeLogIdx,
         logs,
-        selectedDate: { day, month, year },
+        selectedDate: { date, month, year },
       } = state;
 
-      if (!logs[activeLogIdx].data[year] || !month || !day) return state;
+      if (!logs[activeLogIdx].data[year] || !month || !date) return state;
 
       return produce(state, (draft) => {
-        draft.logs[activeLogIdx].data[year][month][day] = payload.keyValue as number;
+        draft.logs[activeLogIdx].data[year][month][date] = payload.keyValue as number;
       });
     }
 
