@@ -118,6 +118,7 @@ const EditForm = ({ data, editLog, dismissModal }: EditFormProps) => {
     //   prevent user clicking too fast before set state
     (e.target as HTMLButtonElement).disabled = true;
 
+    setSelectedKeyIdx(null);
     setValues(
       produce(values, (draft) => {
         draft.keys.push({
@@ -134,6 +135,7 @@ const EditForm = ({ data, editLog, dismissModal }: EditFormProps) => {
   };
 
   const deleteKey = (value: number) => {
+    setSelectedKeyIdx(null);
     setValues(
       produce(values, (draft) => {
         draft.keys = draft.keys.filter((key) => key.value !== value);
@@ -222,7 +224,7 @@ const EditForm = ({ data, editLog, dismissModal }: EditFormProps) => {
             </button>
           </div>
         )}
-        {selectedKeyIdx !== null && (
+        {selectedKeyIdx !== null && values.keys[selectedKeyIdx]?.color && (
           <div className='fixed bottom-0 right-1 z-50 color-picker-wrapper pt-6 p-3'>
             <HexColorPicker
               color={values.keys[selectedKeyIdx].color}
