@@ -82,7 +82,7 @@ describe('useLogsState', () => {
     expect(logsState.showLogDayModal).toBeFalsy();
   });
 
-  it('should correctly create and delete log', () => {
+  test('create and delete log', () => {
     let clonedLogs = [];
 
     // add 3 logs => 5 logs
@@ -162,7 +162,7 @@ describe('useLogsState', () => {
     expect(logsState.activeLogIdx).toBe(4);
   });
 
-  it('should correctly select and reset year, date and log day modal display', () => {
+  test('select and reset year, date and log day modal display', () => {
     // cant select year or date that dont exist
     selectYear(currentYear + 1);
     expect(logsState.selectedYear).toBe(currentYear);
@@ -210,7 +210,7 @@ describe('useLogsState', () => {
     }
   });
 
-  it('should edit log details correctly', () => {
+  test('edit log function', () => {
     //   take mock log and change it up a bit
     const mockLog = { ...DEFAULT_LOGS[0] };
     mockLog.name = 'abc';
@@ -261,7 +261,7 @@ describe('useLogsState', () => {
     expect(logsState.logs[0].data[currentYear][12][30]).toBe(4);
   });
 
-  it('should display and dismiss modals correctly', () => {
+  test('display and dismiss modals', () => {
     displayEditModal();
     expect(logsState.showEditModal).toBeTruthy();
     expect(logsState.showLogDayModal).toBeFalsy();

@@ -122,6 +122,8 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
   switch (type) {
     case ACTION_TYPE_SELECT_LOG: {
       if (typeof payload?.logIdx !== 'number') return state;
+      if (payload.logIdx < 0 || payload.logIdx >= state.logs.length) return state;
+
       return {
         ...DEFAULT_STATE,
         activeLogIdx: payload.logIdx,
@@ -161,7 +163,7 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
     case ACTION_TYPE_DELETE_LOG: {
       return {
         ...DEFAULT_STATE,
-        activeLogIdx: 0,
+        activeLogIdx: state.activeLogIdx == state.logs.length - 1 ? Math.max(0, state.activeLogIdx - 1) : state.activeLogIdx,
         logs: state.logs.filter((_, idx) => idx !== state.activeLogIdx),
       };
     }
@@ -183,7 +185,10 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
         selectedDate: { date, month, year },
       } = state;
 
-      if (!logs[activeLogIdx].data[year] || !month || !date) return state;
+      const currentLog = logs[activeLogIdx];
+
+      if (!currentLog.keys.find((key) => key.value == payload.keyValue)) return state;
+      if (typeof currentLog.data[year]?.[month]?.[date] !== 'number') return state;
 
       return produce(state, (draft) => {
         draft.logs[activeLogIdx].data[year][month][date] = payload.keyValue as number;
@@ -192,6 +197,9 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
 
     case ACTION_TYPE_SELECT_YEAR: {
       if (payload?.year == undefined) return state;
+
+      const availableYears = Object.keys(state.logs[state.activeLogIdx].data).map((year) => parseInt(year));
+      if (availableYears.indexOf(payload.year) == -1) return state;
 
       return {
         ...state,
@@ -202,6 +210,10 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
     case ACTION_TYPE_SELECT_DATE: {
       if (!payload?.date) return state;
 
+      const { date, month, year } = payload.date;
+
+      if (typeof state.logs[state.activeLogIdx]?.data[year]?.[month]?.[date] !== 'number') return state;
+
       return {
         ...state,
         selectedDate: payload.date,
@@ -211,6 +223,8 @@ function reduce(state: LogsState, action: { payload?: Payload; type: string }): 
     }
 
     case ACTION_TYPE_DISPLAY_EDIT_MODAL: {
+      if (!state.logs.length) return state;
+
       return {
         ...state,
         selectedDate: null,

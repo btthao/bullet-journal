@@ -15,9 +15,8 @@ const Input = ({ className, handleChange, ...props }: InputProps) => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      console.log('timeout');
       handleChange(props.name, value);
-    }, 200);
+    }, 50);
 
     return () => {
       clearTimeout(timer);
